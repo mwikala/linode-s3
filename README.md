@@ -2,7 +2,7 @@
 
 <h1 align="center">Linode Object Storage for Craft CMS</h1>
 
-This plugin provides an [Linode Object Storage](https://www.linode.com/products/object-storage/) integration for [Craft CMS](https://craftcms.com/).
+This plugin provides a [Linode Object Storage](https://www.linode.com/products/object-storage/) integration for [Craft CMS](https://craftcms.com/).
 
 ## Requirements
 
