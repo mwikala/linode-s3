@@ -23,7 +23,8 @@
         "email": "support@mwikala.co.uk",
         "issues": "https://github.com/mwikala/linode-s3/issues?state=open",
         "source": "https://github.com/mwikala/linode-s3",
-        "docs": "https://github.com/mwikala/linode-s3/blob/master/README.md"
+        "docs": "https://github.com/mwikala/linode-s3/blob/master/README.md",
+        "rss": "https://github.com/mwikala/linode-s3/commits/master.atom"
     },
     "require": {
         "craftcms/cms": "^3.1.0",
@@ -36,6 +37,7 @@
     },
     "extra": {
         "name": "Linode Object Storage",
-        "handle": "linode-s3"
+        "handle": "linode-s3",
+        "documentationUrl": "https://github.com/mwikala/linode-s3/blob/master/README.md"
     }
 }
