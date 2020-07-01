@@ -1,0 +1,41 @@
+{
+    "name": "mwikala/linode-s3",
+    "description": "Use Linode's S3 compatiable Object Storage",
+    "version": "1.0.0",
+    "type": "craft-plugin",
+    "keywords": [
+        "aws",
+        "assets",
+        "linode",
+        "object",
+        "storage",
+        "s3",
+        "volumes"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mwikala Kangwa",
+            "homepage": "http://mwikala.com/"
+        }
+    ],
+    "support": {
+        "email": "support@mwikala.co.uk",
+        "issues": "https://github.com/mwikala/linode-s3/issues?state=open",
+        "source": "https://github.com/mwikala/linode-s3",
+        "docs": "https://github.com/mwikala/linode-s3/blob/master/README.md"
+    },
+    "require": {
+        "craftcms/cms": "^3.1.0",
+        "league/flysystem-aws-s3-v3": "^1.0.13"
+    },
+    "autoload": {
+        "psr-4": {
+            "mwikala\\linodes3\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Linode S3 Object Storage",
+        "handle": "linode-s3"
+    }
+}

@@ -1,0 +1,114 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.autosuggestField({
+    label: "Access Key"|t('linode-s3'),
+    id: 'keyId',
+    class: 'ltr',
+    name: 'keyId',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: (volume is defined ? volume.keyId : null),
+    errors: (volume is defined ? volume.getErrors('keyId') : null),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Access Secret"|t('linode-s3'),
+    id: 'secret',
+    class: 'ltr',
+    name: 'secret',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: (volume is defined ? volume.secret : null),
+    errors: (volume is defined ? volume.getErrors('secret') : null),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Endpoint"|t('linode-s3'),
+    id: 'endpoint',
+    class: 'ltr',
+    name: 'endpoint',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: (volume is defined ? volume.endpoint : null),
+    errors: (volume is defined ? volume.getErrors('endpoint') : null),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Region"|t('linode-s3'),
+    id: 'region',
+    class: 'ltr',
+    name: 'region',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: (volume is defined ? volume.region : null),
+    errors: (volume is defined ? volume.getErrors('region') : null),
+    required: true,
+    placeholder: "ams3"|t('linode-s3')
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Bucket"|t('linode-s3'),
+    id: 'bucket',
+    class: 'ltr',
+    name: 'bucket',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: (volume is defined ? volume.bucket : null),
+    errors: (volume is defined ? volume.getErrors('bucket') : null),
+    required: true,
+    placeholder: "your-bucket-name"|t('linode-s3')
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Subfolder"|t('linode-s3'),
+    instructions: "If you want to use a bucket’s subfolder as a Volume, specify the path to use here."|t('linode-s3'),
+    id: 'subfolder',
+    class: 'ltr',
+    name: 'subfolder',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: (volume is defined ? volume.subfolder : null),
+    errors: (volume is defined ? volume.getErrors('subfolder') : null),
+    required: false,
+    placeholder: "path/to/subfolder"|t('linode-s3')
+}) }}
+
+<hr>
+
+{% set cacheInput %}
+{% set expires = (volume.expires|length > 0 ? volume.expires|split(' ') : ['', ''])%}
+
+<div class="flex">
+    <div>
+        {{ forms.text({
+                id: 'expiresAmount',
+                value: expires[0],
+                size: 2,
+                class: 'ls3-expires-amount'
+            }) }}
+    </div>
+    {{ forms.select({
+            id: 'expiresPeriod',
+            options: periods,
+            value: expires[1],
+            class: 'ls3-expires-period'
+        }) }}
+</div>
+{{ forms.hidden({
+        name: "expires",
+        value: volume.expires,
+        class: "expires-combined"
+    }) }}
+{% endset %}
+
+{{ forms.field({
+    label: "Cache Duration"|t,
+    instructions: "The Cache-Control duration that assets should be uploaded to the cloud with.",
+    id: 'cacheDuration',
+}, cacheInput) }}
+
+
+{% do view.registerAssetBundle("mwikala\\linodes3\\LinodeS3Bundle") %}
