@@ -254,7 +254,7 @@ class Volume extends FlysystemVolume
             'version' => 'latest',
             'credentials' => new Credentials(
                 $keyId,
-                $secret,
+                $secret
             ),
         ];
 
