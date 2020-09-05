@@ -72,7 +72,7 @@ return [
         'secret' => getenv('LINODE_S3_SECRET'),
         'endpoint' => getenv('LINODE_S3_ENDPOINT'),
         'region' => getenv('LINODE_S3_REGION'),
-        'bucket' => getenv('LINODE_S3_BUCKET'),
+        'bucket' => getenv('LINODE_S3_BUCKET')
     ],
 ];
 ```
