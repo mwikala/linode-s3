@@ -1,7 +1,7 @@
 {
     "name": "mwikala/linode-s3",
     "description": "This plugin provides Linode Object Storage integration for Craft CMS",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "craft-plugin",
     "keywords": [
         "aws",
