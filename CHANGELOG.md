@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.0 - 2022-07-25
+- Added support for Craft 4.
+
 ## 1.0.3 - 2021-01-15
 - Fixed a bug where you received a 500 when trying to download assets from the Bucket
 

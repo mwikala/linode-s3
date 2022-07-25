@@ -3,13 +3,13 @@
 namespace mwikala\linodes3;
 
 use craft\events\RegisterComponentTypesEvent;
-use craft\services\Volumes;
+use craft\services\Fs as FsService;
 use yii\base\Event;
 
 
 /**
  * Plugin represents the Linode S3 volume plugin
- * 
+ *
  * @author Mwikala Kangwa <support@mwikala.co.uk>
  * @since 3.4
  */
@@ -19,12 +19,12 @@ class Plugin extends \craft\base\Plugin
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
-        Event::on(Volumes::class, Volumes::EVENT_REGISTER_VOLUME_TYPES, function(RegisterComponentTypesEvent $event) {
-            $event->types[] = Volume::class;
+        Event::on(FsService::class, FsService::EVENT_REGISTER_FILESYSTEM_TYPES, static function (RegisterComponentTypesEvent $event) {
+            $event->types[] = Fs::class;
         });
     }
 }

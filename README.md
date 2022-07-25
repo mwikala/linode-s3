@@ -33,7 +33,7 @@ composer require mwikala/linode-s3
 
 ## Setup
 
-To create a new asset volume for your Amazon S3 bucket, go to Settings → Assets, create a new volume, and set the Volume Type setting to “Linode S3”.
+To create a new asset file system for your Amazon S3 bucket, go to Settings → Filesystems, create a new filesystem, and set the Filesystem Type setting to “Linode S3”.
 
 ## Environment Variables
 
