@@ -16,11 +16,11 @@ use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use craft\behaviors\EnvAttributeParserBehavior;
 
 /**
- * Class Volume
+ * Class Fs
  *
  * @property mixed $settingsHtml
  * @property string $rootUrl
- * @author Mwikala Kangwa <support@mwikala.co.uk>
+ * @author Mwikala Kangwa <hello@mwikala.co.uk>
  * @since 1.0
  */
 class Fs extends FlysystemFs

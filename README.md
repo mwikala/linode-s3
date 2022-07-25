@@ -59,24 +59,6 @@ LINODE_S3_BUCKET=
 LINODE_S3_BUCKET_URL=
 ```
 
-You can also overwrite the settings of a volume using a `config/volumes.php` file. That would look something like this:
-
-```php
-<?php
-
-return [
-    'linodeOSVolumeHandle' => [
-        'hasUrls' => true,
-        'url' => getenv('LINODE_S3_BUCKET_URL'),
-        'keyId' => getenv('LINODE_S3_ACCESS_KEY'),
-        'secret' => getenv('LINODE_S3_SECRET'),
-        'endpoint' => getenv('LINODE_S3_ENDPOINT'),
-        'region' => getenv('LINODE_S3_REGION'),
-        'bucket' => getenv('LINODE_S3_BUCKET')
-    ],
-];
-```
-
 ## License & Support
 
 This plugin is released under the [MIT license](./LICENSE.md), meaning you can do whatever you please with it.

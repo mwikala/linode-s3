@@ -10,7 +10,7 @@ use yii\base\Event;
 /**
  * Plugin represents the Linode S3 volume plugin
  *
- * @author Mwikala Kangwa <support@mwikala.co.uk>
+ * @author Mwikala Kangwa <hello@mwikala.co.uk>
  * @since 3.4
  */
 class Plugin extends \craft\base\Plugin
