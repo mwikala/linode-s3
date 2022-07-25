@@ -2,27 +2,28 @@
 
 namespace mwikala\linodes3;
 
-use Aws\Credentials\Credentials;
-use Aws\Handler\GuzzleV6\GuzzleHandler;
-use Aws\S3\Exception\S3Exception;
-use Aws\S3\S3Client;
-
 use Craft;
-use craft\base\FlysystemVolume;
-use craft\helpers\Assets;
-use craft\helpers\DateTimeHelper;
 use DateTime;
-use League\Flysystem\AwsS3v3\AwsS3Adapter;
+use Aws\S3\S3Client;
+use craft\helpers\App;
+use craft\helpers\Assets;
+use Aws\Credentials\Credentials;
+use craft\helpers\DateTimeHelper;
+use craft\flysystem\base\FlysystemFs;
+use Aws\Handler\GuzzleV6\GuzzleHandler;
+use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
+use craft\behaviors\EnvAttributeParserBehavior;
 
 /**
- * Class Volume
- * 
+ * Class Fs
+ *
  * @property mixed $settingsHtml
  * @property string $rootUrl
- * @author Mwikala Kangwa <support@mwikala.co.uk>
+ * @author Mwikala Kangwa <hello@mwikala.co.uk>
  * @since 1.0
  */
-class Volume extends FlysystemVolume
+class Fs extends FlysystemFs
 {
     // Constants
     // =========================================================================
@@ -100,63 +101,45 @@ class Volume extends FlysystemVolume
      */ #
     public $contentDisposition = '';
 
-    // Getters
-    // =========================================================================
-
-    public function getSubfolder()
-    {
-        return Craft::parseEnv($this->subfolder);
-    }
-
-    public function getKeyId()
-    {
-        return Craft::parseEnv($this->keyId);
-    }
-
-    public function getSecret()
-    {
-        return Craft::parseEnv($this->secret);
-    }
-
-    public function getEndpoint()
-    {
-        return Craft::parseEnv($this->endpoint);
-    }
-
-    public function getBucket()
-    {
-        return Craft::parseEnv($this->bucket);
-    }
-
-    public function getRegion()
-    {
-        return Craft::parseEnv($this->region);
-    }
-
     // Public Methods
     // =========================================================================
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function behaviors(): array
     {
-        $rules = parent::rules();
-        $rules[] = [['keyId', 'secret', 'region', 'bucket', 'endpoint'], 'required'];
+        $behaviors = parent::behaviors();
+        $behaviors['parser'] = [
+            'class' => EnvAttributeParserBehavior::class,
+            'attributes' => [
+                'subfolder', 'keyId', 'secret', 'region', 'bucket', 'endpoint'
+            ],
+        ];
 
-        return $rules;
+        return $behaviors;
     }
 
     /**
      * @inheritdoc
      */
-    public function getSettingsHtml()
+    protected function defineRules(): array
     {
-        return Craft::$app->getView()->renderTemplate('linode-s3/volumeSettings', [
-            'volume' => $this,
+        return array_merge(parent::defineRules(), [
+            [['keyId', 'secret', 'region', 'bucket', 'endpoint'], 'required'],
+        ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSettingsHtml(): ?string
+    {
+        return Craft::$app->getView()->renderTemplate('linode-s3/fsSettings', [
+            'fs' => $this,
             'periods' => array_merge(['' => ''], Assets::periodList()),
             'contentDispositionOptions' => [
-                '' => '--- none ---',
+                '' => 'none',
                 'inline' => 'inline',
                 'attachment' => 'attachment'
             ],
@@ -167,9 +150,9 @@ class Volume extends FlysystemVolume
     /**
      * @inheritdoc
      */
-    public function getRootUrl()
+    public function getRootUrl(): ?string
     {
-        if (($rootUrl = parent::getRootUrl()) !== false && $this->getSubfolder()) {
+        if (($rootUrl = parent::getRootUrl()) !== false && $this->_subfolder()) {
             $rootUrl .= rtrim($this->getSubfolder(), '/') . '/';
         }
         return $rootUrl;
@@ -182,23 +165,34 @@ class Volume extends FlysystemVolume
      * @inheritdoc
      * @return AwsS3Adapter
      */
-    protected function createAdapter()
+    protected function createAdapter(): FilesystemAdapter
     {
-        $config = $this->_getConfigArray();
+        $client = static::client($this->_getConfigArray(), $this->_getCredentials());
 
-        $client = static::client($config);
-
-        return new AwsS3Adapter($client, $this->getBucket(), $this->getSubfolder(), [], false);
+        return new AwsS3V3Adapter($client, App::parseEnv($this->bucket), $this->_subfolder(), null, null, [], false);
     }
 
     /**
      * Get the Amazon S3 Client
-     * 
+     *
      * @param $config
      * @return S3Client
      */
-    protected static function client(array $config = []): S3Client
+    protected static function client(array $config = [], array $credentials = []): S3Client
     {
+        if (!empty($config['credentials']) && $config['credentials'] instanceof Credentials) {
+            $config['generateNewConfig'] = static function() use ($credentials) {
+                $args = [
+                    $credentials['keyId'],
+                    $credentials['secret'],
+                    $credentials['region'],
+                    true,
+                ];
+
+                return call_user_func_array(self::class . '::buildConfigArray', $args);
+            };
+        }
+
         return new S3Client($config);
     }
 
@@ -211,7 +205,7 @@ class Volume extends FlysystemVolume
             $expires = new DateTime();
             $now = new DateTime();
             $expires->modify('+' . $this->expires);
-            $diff = $expires->format('U') - $now->format('U');
+            $diff = (int) $expires->format('U') - (int) $now->format('U');
             $config['CacheControl'] = 'max-age=' . $diff . ', must-revalidate';
             $config['ContentDisposition'] = $this->contentDisposition;
         }
@@ -223,23 +217,34 @@ class Volume extends FlysystemVolume
     // =========================================================================
 
     /**
+     * Returns the parsed subfolder path
+     *
+     * @return string
+     */
+    private function _subfolder(): string
+    {
+        if ($this->subfolder && ($subfolder = rtrim(App::parseEnv($this->subfolder), '/')) !== '') {
+            return $subfolder . '/';
+        }
+
+        return '';
+    }
+
+    /**
      * Get the config array for AWS client
-     * 
+     *
      * @return array
      */
     private function _getConfigArray()
     {
-        $keyId = $this->getKeyId();
-        $secret = $this->getSecret();
-        $region = $this->getRegion();
-        $endpoint = $this->getEndpoint();
+        $credentials = $this->_getCredentials();
 
-        return self::_buildConfigArray($keyId, $secret, $region, $endpoint);
+        return self::_buildConfigArray($credentials['keyId'], $credentials['secret'], $credentials['region'], $credentials['endpoint']);
     }
 
     /**
      * Built the config array
-     * 
+     *
      * @param $keyId
      * @param $secret
      * @param $region
@@ -252,15 +257,36 @@ class Volume extends FlysystemVolume
             'region' => $region,
             'endpoint' => $endpoint,
             'version' => 'latest',
-            'credentials' => new Credentials(
-                $keyId,
-                $secret
-            ),
+            'credentials' => [
+                'key' => $keyId,
+                'secret' => $secret,
+            ],
         ];
 
         $client = Craft::createGuzzleClient();
         $config['http_handler'] = new GuzzleHandler($client);
 
         return $config;
+    }
+
+    /**
+     * Return the credentials as an array
+     *
+     * @return array
+     */
+    private function _getCredentials(): array
+    {
+        return [
+            'keyId' => App::parseEnv($this->keyId),
+            'secret' => App::parseEnv($this->secret),
+            'region' => App::parseEnv($this->region),
+            'endpoint' => App::parseEnv($this->endpoint),
+        ];
+    }
+
+    /** @inheritdoc */
+    protected function invalidateCdnPath(string $path): bool
+    {
+        return true;
     }
 }

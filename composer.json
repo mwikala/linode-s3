@@ -2,6 +2,7 @@
     "name": "mwikala/linode-s3",
     "description": "This plugin provides Linode Object Storage integration for Craft CMS",
     "type": "craft-plugin",
+    "version": "2.0.0",
     "keywords": [
         "aws",
         "assets",
@@ -9,25 +10,30 @@
         "object",
         "storage",
         "s3",
-        "volumes"
+        "volumes",
+        "filesystems",
+        "file system",
+        "flysystem"
     ],
     "license": "MIT",
     "authors": [
         {
             "name": "Mwikala Kangwa",
-            "homepage": "http://mwikala.com/"
+            "homepage": "https://mwikala.com/"
         }
     ],
     "support": {
-        "email": "support@mwikala.co.uk",
+        "email": "hello@mwikala.co.uk",
         "issues": "https://github.com/mwikala/linode-s3/issues?state=open",
         "source": "https://github.com/mwikala/linode-s3",
         "docs": "https://github.com/mwikala/linode-s3/blob/master/README.md",
         "rss": "https://github.com/mwikala/linode-s3/commits/master.atom"
     },
     "require": {
-        "craftcms/cms": "^3.1.0",
-        "league/flysystem-aws-s3-v3": "^1.0.28"
+        "php": "^8.0",
+        "craftcms/cms": "^4.0.0-beta.4",
+        "craftcms/flysystem": "^1.0.0-beta.2",
+        "league/flysystem-aws-s3-v3": "^3.0.0"
     },
     "autoload": {
         "psr-4": {
@@ -37,6 +43,18 @@
     "extra": {
         "name": "Linode Object Storage",
         "handle": "linode-s3",
+        "schemaVersion": "2.0.0",
         "documentationUrl": "https://github.com/mwikala/linode-s3/blob/master/README.md"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require-dev": {
+        "craftcms/rector": "dev-main"
     }
 }

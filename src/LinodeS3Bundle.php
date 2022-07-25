@@ -13,7 +13,7 @@ class LinodeS3Bundle extends AssetBundle
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         $this->sourcePath = '@mwikala/linodes3/resources';
 
@@ -22,7 +22,7 @@ class LinodeS3Bundle extends AssetBundle
         ];
 
         $this->js = [
-            'js/editVolume.js'
+            'js/editFilesystem.js'
         ];
 
         parent::init();
