@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.1 - 2022-08-10
+- Fixed bug where a call was made to Fs::getSubFolder (Method was removed in 2.0.0)
+
 ## 2.0.0 - 2022-07-25
 - Added support for Craft 4.
 

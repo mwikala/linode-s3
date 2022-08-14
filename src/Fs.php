@@ -153,7 +153,7 @@ class Fs extends FlysystemFs
     public function getRootUrl(): ?string
     {
         if (($rootUrl = parent::getRootUrl()) !== false && $this->_subfolder()) {
-            $rootUrl .= rtrim($this->getSubfolder(), '/') . '/';
+            $rootUrl .= rtrim($this->_subfolder(), '/') . '/';
         }
         return $rootUrl;
     }
