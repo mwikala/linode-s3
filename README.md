@@ -6,7 +6,7 @@ This plugin provides a [Linode Object Storage](https://www.linode.com/products/o
 
 ## Requirements
 
-This plugin requires Craft CMS 3.1.0 or later.
+This plugin requires Craft CMS 4 or later.
 
 ## Installation
 
