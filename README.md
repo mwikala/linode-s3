@@ -2,65 +2,96 @@
 
 <h1 align="center">Linode Object Storage for Craft CMS</h1>
 
-This plugin provides a [Linode Object Storage](https://www.linode.com/products/object-storage/) integration for [Craft CMS](https://craftcms.com/).
+This plugin provides a [Linode Object Storage](https://www.linode.com/products/object-storage/) filesystem for [Craft CMS](https://craftcms.com/).
 
 ## Requirements
 
-This plugin requires Craft CMS 4 or later.
+- Craft CMS 4.0+ or 5.0+
+- PHP 8.0.2+
+- PHP 8.2+ when running Craft CMS 5
 
 ## Installation
 
-You can install this plugin from the Plugin Store or with Composer.
-
-#### From the Plugin Store
-
-Go to the Plugin Store in your project’s Control Panel and search for “Linode Object Storage”. Then click on the “Install” button in its modal window.
-
-#### With Composer
-
-Open your terminal and run the following commands:
+Install the plugin from the Plugin Store, or with Composer:
 
 ```bash
-# go to the project directory
-cd /path/to/my-project.test
-
-# tell Composer to load the plugin
+cd /path/to/my-craft-project
 composer require mwikala/linode-s3
-
-# tell Craft to install the plugin
-./craft plugin/install linode-s3
+php craft plugin/install linode-s3
 ```
+
+The Composer package name is `mwikala/linode-s3` and the Craft plugin handle is `linode-s3`.
 
 ## Setup
 
-To create a new asset file system for your Amazon S3 bucket, go to Settings → Filesystems, create a new filesystem, and set the Filesystem Type setting to “Linode S3”.
+1. In Linode Cloud Manager, create an Object Storage bucket and an access key with access to that bucket.
+2. In Craft, go to Settings → Filesystems and create a new filesystem.
+3. Set **Filesystem Type** to **Linode Object Storage**.
+4. Enter your bucket details, or use environment variables such as `$LINODE_S3_BUCKET`.
+5. If files should be publicly accessible, enable **Files in this filesystem have public URLs** and set **Base URL** to the bucket URL or CDN/custom-domain URL.
+
+Linode bucket URLs usually look like this:
+
+```text
+https://[bucket-name].[region].linodeobjects.com
+```
+
+The plugin’s **API Endpoint** setting should be the same URL without the bucket name:
+
+```text
+https://[region].linodeobjects.com
+```
+
+For example, a bucket URL of `https://assets.eu-central-1.linodeobjects.com` would use:
+
+| Setting | Value |
+| --- | --- |
+| API Endpoint | `https://eu-central-1.linodeobjects.com` |
+| Region | `eu-central-1` |
+| Bucket | `assets` |
+| Base URL | `https://assets.eu-central-1.linodeobjects.com` |
+
+If you set a **Subfolder**, don’t append it to the **Base URL**. Craft adds the subfolder automatically when generating asset URLs.
 
 ## Environment Variables
 
-To allow you to setup different Buckets for different environments, you can set these handy environment variables in your `.env` and `.env.example` (so you don't forget them after pushing to source control):
+You can keep credentials and environment-specific bucket details in your project’s `.env` file:
 
 ```env
-# The Linode Object Storage Access Key with read/write access to Buckets
+# Linode Object Storage access key with read/write access to the bucket
 LINODE_S3_ACCESS_KEY=
 
-# The Linode Object Storage Access Secret
+# Linode Object Storage secret key
 LINODE_S3_SECRET=
 
-# THE URL endpoint for your Buckets
+# API endpoint, e.g. https://eu-central-1.linodeobjects.com
 LINODE_S3_ENDPOINT=
 
-# The region your Object Storage bucket is in
+# Region, e.g. eu-central-1
 LINODE_S3_REGION=
 
-# The name of your bucket
+# Bucket name, e.g. assets
 LINODE_S3_BUCKET=
 
-# The URL of the bucket
+# Public bucket, CDN, or custom-domain URL
 LINODE_S3_BUCKET_URL=
 ```
 
+Then use these values in the filesystem settings:
+
+| Setting | Value |
+| --- | --- |
+| API Endpoint | `$LINODE_S3_ENDPOINT` |
+| Region | `$LINODE_S3_REGION` |
+| Bucket | `$LINODE_S3_BUCKET` |
+| Access Key ID | `$LINODE_S3_ACCESS_KEY` |
+| Secret Access Key | `$LINODE_S3_SECRET` |
+| Base URL | `$LINODE_S3_BUCKET_URL` |
+
+Do not commit real access keys or secrets to source control.
+
 ## License & Support
 
-This plugin is released under the [MIT license](./LICENSE.md), meaning you can do whatever you please with it.
+This plugin is released under the [MIT license](./LICENSE.md).
 
-> If you experience any issues with the plugin then open an issue here and I'll try get it fixed/answered whenever I have some free time
+If you experience any issues with the plugin, please open an issue on GitHub and I’ll try to get it fixed or answered when I have some free time.
