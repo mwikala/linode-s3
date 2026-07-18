@@ -1,22 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace mwikala\linodes3;
 
-use Craft;
-use DateTime;
 use Aws\S3\S3Client;
+use Craft;
+use craft\behaviors\EnvAttributeParserBehavior;
+use craft\flysystem\base\FlysystemFs;
 use craft\helpers\App;
 use craft\helpers\Assets;
-use Aws\Credentials\Credentials;
 use craft\helpers\DateTimeHelper;
-use craft\flysystem\base\FlysystemFs;
-use Aws\Handler\GuzzleV6\GuzzleHandler;
+use DateTime;
 use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
-use craft\behaviors\EnvAttributeParserBehavior;
 
 /**
- * Class Fs
+ * Linode Object Storage filesystem.
  *
  * @property mixed $settingsHtml
  * @property string $rootUrl
@@ -28,19 +27,19 @@ class Fs extends FlysystemFs
     // Constants
     // =========================================================================
 
-    const STORAGE_STANDARD = 'STANDARD';
-    const STORAGE_REDUCE_REDUNDANCY = 'REDUCE_REDUNDANCY';
-    const STORAGE_STANDARD_IA = 'STANDARD_IA';
+    public const STORAGE_STANDARD = 'STANDARD';
+    public const STORAGE_REDUCED_REDUNDANCY = 'REDUCED_REDUNDANCY';
+    public const STORAGE_STANDARD_IA = 'STANDARD_IA';
 
     /**
-     * Cache key to use for caching purposes
+     * Cache key to use for caching purposes.
      */
-    const CACHE_KEY_PREFIX = 'linode.';
+    public const CACHE_KEY_PREFIX = 'linode.';
 
     /**
-     * Cache duration for access token
+     * Cache duration for access token.
      */
-    const CACHE_DURATION_SECONDS = 3600;
+    public const CACHE_DURATION_SECONDS = 3600;
 
     // Static
     // =========================================================================
@@ -50,7 +49,7 @@ class Fs extends FlysystemFs
      */
     public static function displayName(): string
     {
-        return 'Linode S3';
+        return 'Linode Object Storage';
     }
 
     // Properties
@@ -59,47 +58,47 @@ class Fs extends FlysystemFs
     /**
      * @var bool Whether this is a local source or not. Defaults to false.
      */
-    protected $isVolumeLocal = false;
+    protected bool $isVolumeLocal = false;
 
     /**
-     * @var string Subfolder to use
+     * @var string Subfolder to use.
      */
-    public $subfolder = '';
+    public string $subfolder = '';
 
     /**
-     * @var string Access Key id
+     * @var string Access key ID.
      */
-    public $keyId = '';
+    public string $keyId = '';
 
     /**
-     * @var string Secret Key
+     * @var string Secret access key.
      */
-    public $secret = '';
+    public string $secret = '';
 
     /**
-     * @var string Linode endpoint
+     * @var string Linode Object Storage API endpoint.
      */
-    public $endpoint = '';
+    public string $endpoint = '';
 
     /**
-     * @var string Bucket to use
+     * @var string Bucket to use.
      */
-    public $bucket = '';
+    public string $bucket = '';
 
     /**
-     * @var string Region to use
+     * @var string Region to use.
      */
-    public $region = '';
+    public string $region = '';
 
     /**
-     * @var string Cache expiration period
+     * @var string Cache expiration period.
      */
-    public $expires = '';
+    public string $expires = '';
 
     /**
-     * @var string Content Disposition value
-     */ #
-    public $contentDisposition = '';
+     * @var string Content-Disposition value.
+     */
+    public string $contentDisposition = '';
 
     // Public Methods
     // =========================================================================
@@ -113,7 +112,12 @@ class Fs extends FlysystemFs
         $behaviors['parser'] = [
             'class' => EnvAttributeParserBehavior::class,
             'attributes' => [
-                'subfolder', 'keyId', 'secret', 'region', 'bucket', 'endpoint'
+                'subfolder',
+                'keyId',
+                'secret',
+                'endpoint',
+                'bucket',
+                'region',
             ],
         ];
 
@@ -141,9 +145,9 @@ class Fs extends FlysystemFs
             'contentDispositionOptions' => [
                 '' => 'none',
                 'inline' => 'inline',
-                'attachment' => 'attachment'
+                'attachment' => 'attachment',
             ],
-            'contentDisposition' => $this->contentDisposition
+            'contentDisposition' => $this->contentDisposition,
         ]);
     }
 
@@ -155,6 +159,7 @@ class Fs extends FlysystemFs
         if (($rootUrl = parent::getRootUrl()) !== false && $this->_subfolder()) {
             $rootUrl .= rtrim($this->_subfolder(), '/') . '/';
         }
+
         return $rootUrl;
     }
 
@@ -163,36 +168,30 @@ class Fs extends FlysystemFs
 
     /**
      * @inheritdoc
-     * @return AwsS3Adapter
+     * @return LinodeS3V3Adapter
      */
     protected function createAdapter(): FilesystemAdapter
     {
-        $client = static::client($this->_getConfigArray(), $this->_getCredentials());
+        $client = static::client($this->_getConfigArray());
 
-        return new AwsS3V3Adapter($client, App::parseEnv($this->bucket), $this->_subfolder(), null, null, [], false);
+        return new LinodeS3V3Adapter(
+            $client,
+            App::parseEnv($this->bucket),
+            $this->_subfolder(),
+            null,
+            null,
+            [],
+            false,
+        );
     }
 
     /**
-     * Get the Amazon S3 Client
+     * Get the S3-compatible client.
      *
-     * @param $config
-     * @return S3Client
+     * @param array $config client config
      */
-    protected static function client(array $config = [], array $credentials = []): S3Client
+    protected static function client(array $config = []): S3Client
     {
-        if (!empty($config['credentials']) && $config['credentials'] instanceof Credentials) {
-            $config['generateNewConfig'] = static function() use ($credentials) {
-                $args = [
-                    $credentials['keyId'],
-                    $credentials['secret'],
-                    $credentials['region'],
-                    true,
-                ];
-
-                return call_user_func_array(self::class . '::buildConfigArray', $args);
-            };
-        }
-
         return new S3Client($config);
     }
 
@@ -205,21 +204,35 @@ class Fs extends FlysystemFs
             $expires = new DateTime();
             $now = new DateTime();
             $expires->modify('+' . $this->expires);
-            $diff = (int) $expires->format('U') - (int) $now->format('U');
-            $config['CacheControl'] = 'max-age=' . $diff . ', must-revalidate';
+            $diff = (int)$expires->format('U') - (int)$now->format('U');
+            $config['CacheControl'] = 'max-age=' . $diff;
+        }
+
+        if (!empty($this->contentDisposition)) {
             $config['ContentDisposition'] = $this->contentDisposition;
         }
 
-        return parent::addFileMetadataToConfig($config);
+        // Linode Object Storage doesn't support S3 object ACL headers like x-amz-acl.
+        // Craft's base Flysystem implementation adds visibility metadata, which the
+        // AWS S3 adapter translates into those ACL headers, so return our metadata
+        // directly and leave object access control to the bucket's Linode settings.
+        return $config;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function invalidateCdnPath(string $path): bool
+    {
+        // Not implemented; Linode Object Storage doesn't provide a first-party CDN purge API here.
+        return true;
     }
 
     // Private Methods
     // =========================================================================
 
     /**
-     * Returns the parsed subfolder path
-     *
-     * @return string
+     * Returns the parsed subfolder path.
      */
     private function _subfolder(): string
     {
@@ -231,27 +244,24 @@ class Fs extends FlysystemFs
     }
 
     /**
-     * Get the config array for AWS client
-     *
-     * @return array
+     * Get the config array for AWS clients.
      */
-    private function _getConfigArray()
+    private function _getConfigArray(): array
     {
         $credentials = $this->_getCredentials();
 
-        return self::_buildConfigArray($credentials['keyId'], $credentials['secret'], $credentials['region'], $credentials['endpoint']);
+        return self::_buildConfigArray(
+            $credentials['keyId'],
+            $credentials['secret'],
+            $credentials['region'],
+            $credentials['endpoint'],
+        );
     }
 
     /**
-     * Built the config array
-     *
-     * @param $keyId
-     * @param $secret
-     * @param $region
-     * @param $endpoint
-     * @return array
+     * Build the config array.
      */
-    private static function _buildConfigArray($keyId = null, $secret = null, $region = null, $endpoint = null): array
+    private static function _buildConfigArray(?string $keyId = null, ?string $secret = null, ?string $region = null, ?string $endpoint = null): array
     {
         $config = [
             'region' => $region,
@@ -264,15 +274,15 @@ class Fs extends FlysystemFs
         ];
 
         $client = Craft::createGuzzleClient();
-        $config['http_handler'] = new GuzzleHandler($client);
+        $config['http_handler'] = class_exists('Aws\\Handler\\Guzzle\\GuzzleHandler')
+            ? new \Aws\Handler\Guzzle\GuzzleHandler($client)
+            : new \Aws\Handler\GuzzleV6\GuzzleHandler($client);
 
         return $config;
     }
 
     /**
-     * Return the credentials as an array
-     *
-     * @return array
+     * Return the credentials as an array.
      */
     private function _getCredentials(): array
     {
@@ -282,11 +292,5 @@ class Fs extends FlysystemFs
             'region' => App::parseEnv($this->region),
             'endpoint' => App::parseEnv($this->endpoint),
         ];
-    }
-
-    /** @inheritdoc */
-    protected function invalidateCdnPath(string $path): bool
-    {
-        return true;
     }
 }

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace mwikala\linodes3;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
 /**
- * Asset bundle for the Dashboard
+ * Asset bundle for the Linode Object Storage filesystem settings.
  */
 class LinodeS3Bundle extends AssetBundle
 {
@@ -22,7 +24,7 @@ class LinodeS3Bundle extends AssetBundle
         ];
 
         $this->js = [
-            'js/editFilesystem.js'
+            'js/editFilesystem.js',
         ];
 
         parent::init();
