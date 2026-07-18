@@ -28,7 +28,7 @@ cd /path/to/my-project.test
 composer require mwikala/linode-s3
 
 # tell Craft to install the plugin
-./craft install/plugin linode-s3
+./craft plugin/install linode-s3
 ```
 
 ## Setup
