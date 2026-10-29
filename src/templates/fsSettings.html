@@ -1,39 +1,38 @@
 {% import "_includes/forms" as forms %}
 
-{{ forms.autosuggestField({
-    label: "Access Key ID"|t('linode-s3'),
-    id: 'keyId',
-    class: 'ltr',
-    name: 'keyId',
-    suggestEnvVars: true,
-    suggestAliases: true,
-    value: (fs is defined ? fs.keyId : null),
-    errors: (fs is defined ? fs.getErrors('keyId') : null),
-    required: true,
-}) }}
+<div class="readable">
+    <blockquote class="note tip">
+        <p>
+            In Linode Cloud Manager, open your Object Storage bucket and copy the bucket URL.<br>
+            The URL will look something like this:<br><br>
+
+            <strong>https://[bucket-name].[region].linodeobjects.com</strong><br><br>
+
+            The API Endpoint is this URL without the bucket name, like this:<br><br>
+
+            <strong>https://[region].linodeobjects.com</strong><br><br>
+
+            The “Region” and “Bucket” settings below are the corresponding <strong>[region]</strong> and <strong>[bucket-name]</strong> values.<br><br>
+
+            To set the “Base URL” above, enable the “Files in this filesystem have public URLs” lightswitch.
+            <strong>The value should be the whole bucket URL. Do not add the subfolder from the “Subfolder” setting below if you’ve configured one.</strong>
+        </p>
+    </blockquote>
+</div>
+
+<hr>
 
 {{ forms.autosuggestField({
-    label: "Access Secret"|t('linode-s3'),
-    id: 'secret',
-    class: 'ltr',
-    name: 'secret',
-    suggestEnvVars: true,
-    suggestAliases: true,
-    value: (fs is defined ? fs.secret : null),
-    errors: (fs is defined ? fs.getErrors('secret') : null),
-    required: true,
-}) }}
-
-{{ forms.autosuggestField({
-    label: "Endpoint"|t('linode-s3'),
+    label: "API Endpoint"|t('linode-s3'),
     id: 'endpoint',
     class: 'ltr',
     name: 'endpoint',
     suggestEnvVars: true,
     suggestAliases: true,
-    value: (fs is defined ? fs.endpoint : null),
-    errors: (fs is defined ? fs.getErrors('endpoint') : null),
+    value: fs.endpoint,
+    errors: fs.getErrors('endpoint'),
     required: true,
+    placeholder: "https://eu-central-1.linodeobjects.com"|t('linode-s3')
 }) }}
 
 {{ forms.autosuggestField({
@@ -43,10 +42,10 @@
     name: 'region',
     suggestEnvVars: true,
     suggestAliases: true,
-    value: (fs is defined ? fs.region : null),
-    errors: (fs is defined ? fs.getErrors('region') : null),
+    value: fs.region,
+    errors: fs.getErrors('region'),
     required: true,
-    placeholder: "ams3"|t('linode-s3')
+    placeholder: "eu-central-1"|t('linode-s3')
 }) }}
 
 {{ forms.autosuggestField({
@@ -56,48 +55,83 @@
     name: 'bucket',
     suggestEnvVars: true,
     suggestAliases: true,
-    value: (fs is defined ? fs.bucket : null),
-    errors: (fs is defined ? fs.getErrors('bucket') : null),
+    value: fs.bucket,
+    errors: fs.getErrors('bucket'),
     required: true,
     placeholder: "your-bucket-name"|t('linode-s3')
 }) }}
 
 {{ forms.autosuggestField({
     label: "Subfolder"|t('linode-s3'),
-    instructions: "If you want to use a bucket's subfolder as a File System, specify the path to use here."|t('linode-s3'),
+    instructions: "If you want to use a bucket’s subfolder as a filesystem, specify the path to use here."|t('linode-s3'),
     id: 'subfolder',
     class: 'ltr',
     name: 'subfolder',
     suggestEnvVars: true,
     suggestAliases: true,
-    value: (fs is defined ? fs.subfolder : null),
-    errors: (fs is defined ? fs.getErrors('subfolder') : null),
-    required: false,
+    value: fs.subfolder,
+    errors: fs.getErrors('subfolder'),
     placeholder: "path/to/subfolder"|t('linode-s3')
 }) }}
 
 <hr>
 
-{% set cacheInput %}
-{% set expires = (fs.expires|length > 0 ? fs.expires|split(' ') : ['', ''])%}
+<div class="readable">
+    <blockquote class="note tip">
+        <p>
+            Access Key ID and Secret Access Key can be created from Linode Cloud Manager under Object Storage → Access Keys.
+        </p>
+    </blockquote>
+</div>
 
-<div class="flex">
-    <div>
-        {{ forms.text({
+<hr>
+
+{{ forms.autosuggestField({
+    label: "Access Key ID"|t('linode-s3'),
+    id: 'keyId',
+    class: 'ltr',
+    name: 'keyId',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: fs.keyId,
+    errors: fs.getErrors('keyId'),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Secret Access Key"|t('linode-s3'),
+    id: 'secret',
+    class: 'ltr',
+    name: 'secret',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    value: fs.secret,
+    errors: fs.getErrors('secret'),
+    required: true,
+}) }}
+
+<hr>
+
+{% set cacheInput %}
+    {% set expires = (fs.expires|length > 0 ? fs.expires|split(' ') : ['', ''])%}
+
+    <div class="flex">
+        <div>
+            {{ forms.text({
                 id: 'expiresAmount',
                 value: expires[0],
                 size: 2,
                 class: 'ls3-expires-amount'
             }) }}
-    </div>
-    {{ forms.select({
+        </div>
+        {{ forms.select({
             id: 'expiresPeriod',
             options: periods,
             value: expires[1],
             class: 'ls3-expires-period'
         }) }}
-</div>
-{{ forms.hidden({
+    </div>
+    {{ forms.hidden({
         name: "expires",
         value: fs.expires,
         class: "expires-combined"
@@ -110,5 +144,14 @@
     id: 'cacheDuration',
 }, cacheInput) }}
 
+{{ forms.selectField({
+    label: "Content Disposition"|t,
+    instructions: "The Content-Disposition header indicates whether content should be displayed inline in the browser or downloaded and saved locally."|t,
+    id: 'contentDisposition',
+    name: 'contentDisposition',
+    options: contentDispositionOptions,
+    value: contentDisposition,
+    class: 'ls3-content-disposition'
+}) }}
 
 {% do view.registerAssetBundle("mwikala\\linodes3\\LinodeS3Bundle") %}

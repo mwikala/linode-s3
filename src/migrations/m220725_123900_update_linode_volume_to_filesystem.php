@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace mwikala\linodes3\migrations;
 
 use Craft;
@@ -16,14 +18,15 @@ class m220725_123900_update_linode_volume_to_filesystem extends Migration
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $schemaVersion = $projectConfig->get('plugins.linodes3.schemaVersion', true);
-        if (version_compare($schemaVersion, '2.0', '>=')) {
+        $schemaVersion = $projectConfig->get('plugins.linode-s3.schemaVersion', true)
+            ?? $projectConfig->get('plugins.linodes3.schemaVersion', true);
+        if ($schemaVersion !== null && version_compare($schemaVersion, '2.0.0', '>=')) {
             return true;
         }
 
         $fsConfigs = $projectConfig->get(ProjectConfig::PATH_FS) ?? [];
         foreach ($fsConfigs as $uid => $config) {
-            if ($config['type'] === 'mwikala\linodes3\Volume') {
+            if (($config['type'] ?? null) === 'mwikala\\linodes3\\Volume') {
                 $config['type'] = Fs::class;
                 $projectConfig->set(sprintf('%s.%s', ProjectConfig::PATH_FS, $uid), $config);
             }
