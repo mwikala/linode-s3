@@ -6,9 +6,10 @@ This plugin provides a [Linode Object Storage](https://www.linode.com/products/o
 
 ## Requirements
 
-- Craft CMS 4.0+ or 5.0+
-- PHP 8.0.2+
-- PHP 8.2+ when running Craft CMS 5
+- Craft CMS 5.0+
+- PHP 8.2+
+
+For Craft CMS 4 sites, use version 2.0.2 of this plugin.
 
 ## Installation
 
@@ -52,6 +53,10 @@ For example, a bucket URL of `https://assets.eu-central-1.linodeobjects.com` wou
 | Base URL | `https://assets.eu-central-1.linodeobjects.com` |
 
 If you set a **Subfolder**, don’t append it to the **Base URL**. Craft adds the subfolder automatically when generating asset URLs.
+
+## Public file access
+
+Linode Object Storage does not support S3 object ACLs, so the plugin never sets per-object access. For files with public URLs enabled, make the bucket (or the relevant prefix) publicly readable in Linode Cloud Manager. That is what allows browser previews and public asset links to load.
 
 ## Environment Variables
 

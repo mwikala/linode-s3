@@ -179,7 +179,6 @@ class Fs extends FlysystemFs
             App::parseEnv($this->bucket),
             $this->_subfolder(),
             null,
-            null,
             [],
             false,
         );
